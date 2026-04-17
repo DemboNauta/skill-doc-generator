@@ -2,12 +2,23 @@
   "name": "skill-doc-generator",
   "version": "0.1.0",
   "description": "MCP server that generates Claude Code skill files from documentation URLs",
+  "license": "MIT",
+  "author": "Edgar Milá",
+  "keywords": [
+    "mcp",
+    "claude",
+    "claude-code",
+    "skill",
+    "documentation"
+  ],
   "type": "module",
   "bin": {
     "skill-doc-generator": "./dist/index.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "LICENSE",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc",
