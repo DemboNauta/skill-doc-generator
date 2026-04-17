@@ -13,7 +13,7 @@
   ],
   "type": "module",
   "bin": {
-    "skill-doc-generator": "./dist/index.js"
+    "skill-doc-generator": "dist/index.js"
   },
   "files": [
     "dist",
