@@ -75,7 +75,7 @@ export function registerTools(server: McpServer): void {
           .string()
           .optional()
           .describe(
-            "Directory to save the skill file. Defaults to ~/.claude/skills if not provided."
+            "Base directory for saving the skill. Defaults to ~/.claude. The skill will be saved to <output_dir>/skills/<skill_name>/SKILL.md."
           ),
       },
       annotations: { readOnlyHint: false },
@@ -94,7 +94,7 @@ export function registerTools(server: McpServer): void {
                 output_dir: {
                   type: "string",
                   title: "Output directory",
-                  description: "Leave empty to use the default: ~/.claude/skills",
+                  description: "Leave empty to use the default: ~/.claude (skill will be saved to ~/.claude/skills/<skill_name>/SKILL.md)",
                 },
               },
             },
@@ -103,19 +103,20 @@ export function registerTools(server: McpServer): void {
             targetDir = result.content.output_dir as string;
           }
         }
-        targetDir ??= path.join(os.homedir(), ".claude", "skills");
+        targetDir ??= path.join(os.homedir(), ".claude");
       }
 
-      const filePath = path.join(targetDir, `${skill_name}.md`);
+      const skillDir = path.join(targetDir, "skills", skill_name);
+      const filePath = path.join(skillDir, "SKILL.md");
 
-      await fs.mkdir(targetDir, { recursive: true });
+      await fs.mkdir(skillDir, { recursive: true });
       await fs.writeFile(filePath, content, "utf-8");
 
       return {
         content: [
           {
             type: "text",
-            text: `Skill saved to: ${filePath}\n\nTo activate in Claude Code, run:\n  claude skill add ${filePath}`,
+            text: `Skill saved to: ${filePath}\n\nTo activate in Claude Code, run:\n  claude skill add ${skillDir}`,
           },
         ],
       };
