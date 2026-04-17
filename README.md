@@ -48,7 +48,7 @@ claude mcp add --transport stdio --scope user skill-doc-generator skill-doc-gene
 Once the server is registered, just ask your agent:
 
 ```
-Generate a skill from https://laravel.com/docs/11.x/eloquent
+Generate a skill from https://laravel.com/docs/13.x/eloquent
 ```
 
 ```
