@@ -13,37 +13,35 @@ The agent decides which pages to crawl, synthesizes the content into a skill, an
 
 ## Installation
 
-Requires Node.js 18+.
+Requires Node.js 18+. No cloning needed — install directly from npm.
 
-**Clone and link globally:**
-
-```bash
-git clone https://github.com/your-username/skill-doc-generator
-cd skill-doc-generator
-npm install
-npm run build
-npm link
-```
-
-**Register in Claude Code (global — works across all projects):**
+**Claude Code (global — works across all projects):**
 
 ```bash
-claude mcp add --transport stdio --scope user skill-doc-generator skill-doc-generator
+claude mcp add --transport stdio --scope user skill-doc-generator npx skill-doc-generator
 ```
 
-**Register in other agentic IDEs** — add to your MCP config:
+**Other agentic IDEs** — add to your MCP config:
 
 ```json
 {
   "mcpServers": {
     "skill-doc-generator": {
-      "command": "skill-doc-generator"
+      "command": "npx",
+      "args": ["skill-doc-generator"]
     }
   }
 }
 ```
 
 > Cursor: `.cursor/mcp.json` · Windsurf: `~/.codeium/windsurf/mcp_config.json` · VS Code (Copilot): `.vscode/mcp.json`
+
+If you prefer a permanent global install:
+
+```bash
+npm install -g skill-doc-generator
+claude mcp add --transport stdio --scope user skill-doc-generator skill-doc-generator
+```
 
 ## Usage
 
