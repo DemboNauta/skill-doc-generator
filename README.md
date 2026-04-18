@@ -1,15 +1,30 @@
 # skill-doc-generator
 
-MCP server that turns any documentation URL into a Claude Code skill file. Point it at API docs, a framework's docs, or any library reference — the AI agent crawls the relevant pages and generates a ready-to-use `.md` skill file. No API key required.
+MCP server that turns any documentation URL into a Claude Code skill file — and bundles the full **skill-creator** workflow so any agent can create, test, and iterate on skills without installing anything extra. No API key required.
 
-## How it works
+## Tools
 
-The server exposes two primitive tools. The AI agent (Claude Code, Cursor, Windsurf, or any MCP-compatible IDE) does all the reasoning:
+The server exposes three tools. The AI agent (Claude Code, Cursor, Windsurf, or any MCP-compatible IDE) does all the reasoning:
 
-1. **`fetch_doc_page(url)`** — Fetches a documentation page, strips navigation/scripts/styles, and returns clean text content plus all same-domain links found on the page.
-2. **`save_skill(content, skill_name, output_dir?)`** — Writes the generated skill markdown file to disk.
+| Tool | Description |
+|---|---|
+| `fetch_doc_page(url)` | Fetches a documentation page, strips navigation/scripts/styles, and returns clean text plus all same-domain links. |
+| `save_skill(content, skill_name, output_dir?)` | Writes the generated skill markdown to disk under `<output_dir>/skills/<skill_name>/SKILL.md`. |
+| `get_skill_creator(section?)` | Returns the bundled skill-creator instructions. No arguments → main SKILL.md. Pass a `section` URI to load a subagent file (grader, comparator, analyzer) or the JSON schema reference. |
 
 The agent decides which pages to crawl, synthesizes the content into a skill, and saves it. No external AI API calls happen inside the server itself.
+
+## MCP Resources
+
+The server also exposes the skill-creator files as MCP resources for clients that support native resource reading:
+
+| URI | Contents |
+|---|---|
+| `skill-creator://SKILL.md` | Full skill-creator workflow instructions |
+| `skill-creator://agents/grader.md` | Grader subagent — evaluates assertions against transcripts |
+| `skill-creator://agents/comparator.md` | Blind comparator subagent — judges two outputs without knowing their source |
+| `skill-creator://agents/analyzer.md` | Post-hoc analyzer — explains why the winning version outperformed the other |
+| `skill-creator://references/schemas.md` | JSON schema reference for evals.json, grading.json, benchmark.json |
 
 ## Installation
 
@@ -45,6 +60,8 @@ claude mcp add --transport stdio --scope user skill-doc-generator skill-doc-gene
 
 ## Usage
 
+### Generate a skill from documentation
+
 Once the server is registered, just ask your agent:
 
 ```
@@ -65,9 +82,29 @@ The agent will:
 - Generate the skill `.md` with frontmatter, key concepts, common operations, patterns, and quick reference
 - Save it to `~/.claude/skills/` by default (or ask you where to save it)
 
+### Create or improve a skill with skill-creator
+
+The server bundles the full skill-creator workflow. Call `get_skill_creator` to get the instructions, then follow the loop: draft → test → review → improve → repeat.
+
+```
+Use the skill-creator to help me build a skill for X
+```
+
+```
+I want to improve an existing skill — use skill-creator to run evals and iterate
+```
+
+The bundled skill-creator covers:
+- Capturing intent and writing the SKILL.md draft
+- Writing test cases and running them (with and without the skill) as parallel subagents
+- Grading outputs against quantitative assertions
+- Launching an eval viewer for human review
+- Iterating based on feedback
+- Optimizing the skill's description for better triggering accuracy
+
 ## Output format
 
-The generated file follows the Claude Code skill format:
+Generated skill files follow the Claude Code skill format:
 
 ```markdown
 ---
@@ -92,7 +129,14 @@ Saved files are immediately usable as Claude Code skills.
 
 ```
 src/
-  index.ts              — stdio MCP server entry point
+  index.ts                    — stdio MCP server entry point
   tools/
-    generate-skill.ts   — fetch_doc_page and save_skill tools + HTML helpers
+    generate-skill.ts         — fetch_doc_page and save_skill tools
+  resources/
+    skill-creator.ts          — get_skill_creator tool + MCP resources
+bundled-skills/
+  skill-creator/
+    SKILL.md                  — main skill-creator instructions
+    agents/                   — grader, comparator, analyzer subagent files
+    references/               — JSON schema reference
 ```

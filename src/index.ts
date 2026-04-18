@@ -2,6 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { registerTools } from "./tools/generate-skill.js";
+import { registerSkillCreatorResources } from "./resources/skill-creator.js";
 
 const server = new McpServer(
   { name: "skill-doc-generator", version: "0.2.0" },
@@ -12,11 +13,15 @@ const server = new McpServer(
       "which linked pages are relevant (getting-started, API reference, key features — skip changelogs/blog/auth), " +
       "(3) fetch those pages too, (4) generate a skill .md with frontmatter (name, description, trigger conditions) " +
       "and actionable instructions covering key concepts, common operations, patterns, and quick reference, " +
-      "(5) call save_skill with the generated content.",
+      "(5) call save_skill with the generated content.\n\n" +
+      "This server also bundles the skill-creator skill so any agent can create, test, and iterate on skills " +
+      "without installing anything extra. Call get_skill_creator (no arguments) to get the full instructions, " +
+      "then use the section parameter to load subagent files (grader, comparator, analyzer) as needed.",
   }
 );
 
 registerTools(server);
+registerSkillCreatorResources(server);
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
