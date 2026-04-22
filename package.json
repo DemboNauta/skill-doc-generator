@@ -4,6 +4,14 @@
   "description": "MCP server that generates Claude Code skill files from any documentation URL or GitHub repo — create, test, and iterate on skills for Claude Code, Cursor, and Windsurf",
   "license": "MIT",
   "author": "Edgar Milá",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DemboNauta/skill-doc-generator.git"
+  },
+  "homepage": "https://github.com/DemboNauta/skill-doc-generator#readme",
+  "bugs": {
+    "url": "https://github.com/DemboNauta/skill-doc-generator/issues"
+  },
   "keywords": [
     "mcp",
     "mcp-server",
