@@ -64,9 +64,18 @@ export function registerTools(server: McpServer): void {
     {
       description:
         "Saves a Claude Code skill markdown file to disk. " +
-        "Call this once you have generated the skill content from the documentation.",
+        "Call this once you have generated the skill content from the documentation.\n\n" +
+        "IMPORTANT — 500-line limit: SKILL.md must never exceed 500 lines. " +
+        "If the full skill content would exceed 500 lines, split it into multiple files: " +
+        "keep the frontmatter and a concise overview in SKILL.md (under 500 lines), " +
+        "put detailed sections (API reference, examples, patterns, etc.) in separate .md files " +
+        "passed via extra_files, and add a '## Additional References' section in SKILL.md " +
+        "that links to them with relative paths, e.g. [API Reference](./reference.md).",
       inputSchema: {
-        content: z.string().describe("Full markdown content of the skill file including frontmatter"),
+        content: z.string().describe(
+          "Markdown content of the main SKILL.md file including frontmatter. Must be under 500 lines. " +
+          "If the full skill would exceed 500 lines, put overflow content in extra_files and link to them here."
+        ),
         skill_name: z
           .string()
           .regex(/^[a-z0-9-]+$/)
@@ -79,10 +88,25 @@ export function registerTools(server: McpServer): void {
             "If omitted, auto-detects: uses the project's .claude/ folder if it exists, otherwise falls back to ~/.claude. " +
             "The skill will be saved to <output_dir>/skills/<skill_name>/SKILL.md."
           ),
+        extra_files: z
+          .array(
+            z.object({
+              filename: z
+                .string()
+                .regex(/^[a-z0-9-]+\.md$/)
+                .describe("Filename for this extra file, e.g. 'reference.md' or 'examples.md'"),
+              content: z.string().describe("Full markdown content of this file"),
+            })
+          )
+          .optional()
+          .describe(
+            "Additional markdown files to save alongside SKILL.md when the skill is too large for a single file. " +
+            "Each file is saved to <skill_dir>/<filename>. Reference them from SKILL.md using relative paths."
+          ),
       },
       annotations: { readOnlyHint: false },
     },
-    async ({ content, skill_name, output_dir }, _extra) => {
+    async ({ content, skill_name, output_dir, extra_files }, _extra) => {
       let targetDir = output_dir;
 
       if (!targetDir) {
@@ -132,13 +156,33 @@ export function registerTools(server: McpServer): void {
       const filePath = path.join(skillDir, "SKILL.md");
 
       await fs.mkdir(skillDir, { recursive: true });
+
+      const lineCount = content.split("\n").length;
+      const lineWarning =
+        lineCount > 500
+          ? `\n⚠️  SKILL.md has ${lineCount} lines (limit: 500). Move overflow content to extra_files and link to them.`
+          : "";
+
       await fs.writeFile(filePath, content, "utf-8");
+
+      const savedExtras: string[] = [];
+      if (extra_files?.length) {
+        for (const { filename, content: fileContent } of extra_files) {
+          const extraPath = path.join(skillDir, filename);
+          await fs.writeFile(extraPath, fileContent, "utf-8");
+          savedExtras.push(extraPath);
+        }
+      }
+
+      const extrasSummary = savedExtras.length
+        ? `\nExtra files saved:\n${savedExtras.map((p) => `  - ${p}`).join("\n")}`
+        : "";
 
       return {
         content: [
           {
             type: "text",
-            text: `Skill saved to: ${filePath}\n\nTo activate in Claude Code, run:\n  claude skill add ${skillDir}`,
+            text: `Skill saved to: ${filePath}${extrasSummary}${lineWarning}\n\nTo activate in Claude Code, run:\n  claude skill add ${skillDir}`,
           },
         ],
       };

@@ -20,6 +20,12 @@ const server = new McpServer(
       "(2) fetch updated docs with fetch_doc_page or fetch_github_repo, " +
       "(3) generate updated skill content that merges old structure with new information, " +
       "(4) call save_skill to overwrite.\n\n" +
+      "SKILL.md SIZE LIMIT — 500 lines max: Before calling save_skill, count the lines in your generated content. " +
+      "If it would exceed 500 lines, split the skill: keep the frontmatter + overview + trigger conditions in SKILL.md " +
+      "(under 500 lines), and move bulky sections (full API reference, extensive examples, detailed patterns) " +
+      "into separate files passed via the extra_files parameter (e.g. reference.md, examples.md, patterns.md). " +
+      "Add a '## Additional References' section at the bottom of SKILL.md that links to them: " +
+      "[API Reference](./reference.md), [Examples](./examples.md), etc.\n\n" +
       "This server also bundles the skill-creator skill so any agent can create, test, and iterate on skills " +
       "without installing anything extra. Call get_skill_creator (no arguments) to get the full instructions, " +
       "then use the section parameter to load subagent files (grader, comparator, analyzer) as needed.",
