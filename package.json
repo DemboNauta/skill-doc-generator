@@ -1,15 +1,29 @@
 {
   "name": "skill-doc-generator",
   "version": "0.3.0",
-  "description": "MCP server that generates Claude Code skill files from documentation URLs",
+  "description": "MCP server that generates Claude Code skill files from any documentation URL or GitHub repo — create, test, and iterate on skills for Claude Code, Cursor, and Windsurf",
   "license": "MIT",
   "author": "Edgar Milá",
   "keywords": [
     "mcp",
+    "mcp-server",
     "claude",
     "claude-code",
     "skill",
-    "documentation"
+    "skills",
+    "skill-docs",
+    "skill-generator",
+    "skill-creator",
+    "claude-code-skills",
+    "agent-skills",
+    "ai-skills",
+    "documentation",
+    "docs-to-skills",
+    "anthropic",
+    "agent",
+    "agentic-ide",
+    "cursor",
+    "windsurf"
   ],
   "type": "module",
   "bin": {
