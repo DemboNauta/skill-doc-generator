@@ -75,7 +75,9 @@ export function registerTools(server: McpServer): void {
           .string()
           .optional()
           .describe(
-            "Base directory for saving the skill. Defaults to ~/.claude. The skill will be saved to <output_dir>/skills/<skill_name>/SKILL.md."
+            "Base directory for saving the skill. Relative paths are resolved from the current project directory. " +
+            "If omitted, auto-detects: uses the project's .claude/ folder if it exists, otherwise falls back to ~/.claude. " +
+            "The skill will be saved to <output_dir>/skills/<skill_name>/SKILL.md."
           ),
       },
       annotations: { readOnlyHint: false },
@@ -86,6 +88,15 @@ export function registerTools(server: McpServer): void {
       if (!targetDir) {
         const caps = server.server.getClientCapabilities();
         if (caps?.elicitation) {
+          const projectClaudeDir = path.join(process.cwd(), ".claude");
+          const projectClaudeExists = await fs
+            .access(projectClaudeDir)
+            .then(() => true)
+            .catch(() => false);
+          const defaultDescription = projectClaudeExists
+            ? `Leave empty to use the project directory: ${projectClaudeDir}`
+            : `Leave empty to use the global default: ${path.join(os.homedir(), ".claude")}`;
+
           const result = await server.server.elicitInput({
             message: "Where should the skill file be saved?",
             requestedSchema: {
@@ -94,7 +105,7 @@ export function registerTools(server: McpServer): void {
                 output_dir: {
                   type: "string",
                   title: "Output directory",
-                  description: "Leave empty to use the default: ~/.claude (skill will be saved to ~/.claude/skills/<skill_name>/SKILL.md)",
+                  description: defaultDescription,
                 },
               },
             },
@@ -103,7 +114,18 @@ export function registerTools(server: McpServer): void {
             targetDir = result.content.output_dir as string;
           }
         }
-        targetDir ??= path.join(os.homedir(), ".claude");
+        if (!targetDir) {
+          const projectClaudeDir = path.join(process.cwd(), ".claude");
+          const projectClaudeExists = await fs
+            .access(projectClaudeDir)
+            .then(() => true)
+            .catch(() => false);
+          targetDir = projectClaudeExists
+            ? projectClaudeDir
+            : path.join(os.homedir(), ".claude");
+        }
+      } else if (!path.isAbsolute(targetDir)) {
+        targetDir = path.resolve(process.cwd(), targetDir);
       }
 
       const skillDir = path.join(targetDir, "skills", skill_name);
@@ -245,12 +267,27 @@ export function registerTools(server: McpServer): void {
         output_dir: z
           .string()
           .optional()
-          .describe("Base directory where skills are stored. Defaults to ~/.claude"),
+          .describe(
+            "Base directory where skills are stored. Relative paths are resolved from the current project directory. " +
+            "If omitted, auto-detects: uses the project's .claude/ folder if it exists, otherwise falls back to ~/.claude."
+          ),
       },
       annotations: { readOnlyHint: true },
     },
     async ({ skill_name, output_dir }) => {
-      const baseDir = output_dir ?? path.join(os.homedir(), ".claude");
+      let baseDir: string;
+      if (output_dir) {
+        baseDir = path.isAbsolute(output_dir)
+          ? output_dir
+          : path.resolve(process.cwd(), output_dir);
+      } else {
+        const projectClaudeDir = path.join(process.cwd(), ".claude");
+        const projectClaudeExists = await fs
+          .access(projectClaudeDir)
+          .then(() => true)
+          .catch(() => false);
+        baseDir = projectClaudeExists ? projectClaudeDir : path.join(os.homedir(), ".claude");
+      }
       const filePath = path.join(baseDir, "skills", skill_name, "SKILL.md");
 
       try {
