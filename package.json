@@ -6,7 +6,7 @@
   "author": "Edgar Milá",
   "repository": {
     "type": "git",
-    "url": "https://github.com/DemboNauta/skill-doc-generator.git"
+    "url": "git+https://github.com/DemboNauta/skill-doc-generator.git"
   },
   "homepage": "https://github.com/DemboNauta/skill-doc-generator#readme",
   "bugs": {
